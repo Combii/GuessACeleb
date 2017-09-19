@@ -1,9 +1,12 @@
 package com.combii.guessaceleb;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,16 +28,48 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        for (Map.Entry<String, String> entry : findCelebs().entrySet())
-        {
-            System.out.println(entry.getKey() + " / " + entry.getValue());
-        }
-
     }
 
 
 
-    private Map<String, String> findCelebs() {
+    public void downloadImage(View view) {
+
+        ImageDownloader task = new ImageDownloader();
+        Bitmap myImage;
+
+        try {
+            myImage = task.execute("https://upload.wikimedia.org/wikipedia/en/a/aa/Bart_Simpson_200px.png").get();
+            downloadedImg.setImageBitmap(myImage);
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+
+        Log.i("Button", "Clicked on Button");
+    }
+
+    private class ImageDownloader extends AsyncTask<String, Void, Bitmap> {
+
+        @Override
+        protected Bitmap doInBackground(String... urls) {
+
+            try {
+                URL url = new URL(urls[0]);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+
+                InputStream inputStream = connection.getInputStream();
+
+                return BitmapFactory.decodeStream(inputStream);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    private Map<String, String> getCelebsMap() {
         DownloadMapOfCelebs task = new DownloadMapOfCelebs();
         try {
             return task.execute().get();
